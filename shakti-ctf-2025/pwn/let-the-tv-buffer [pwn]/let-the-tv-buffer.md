@@ -7,35 +7,35 @@ File(s) given: let-the-tv-buffer (ELF file)
 
 1. Analyse the file with Ghidra. main() shows this:
 
-```int main(void) {
-    char local_68[70];
-    char local_22[10];
-    FILE *local_18;
-    char *local_10;
+    ```int main(void) {
+        char local_68[70];
+        char local_22[10];
+        FILE *local_18;
+        char *local_10;
 
-    local_10 = "-3735928559";
-    puts("The TV usually keeps buffering. It isn't doing that now for some reason. I dunno why :(");
-    puts("I need to show my cool TV fixing skills for the upcoming science fair.");
-    puts("I wonder what I can do to put it back to how it originally was... Any ideas? \nReply >> ");
-    gets(local_22);
+        local_10 = "-3735928559";
+        puts("The TV usually keeps buffering. It isn't doing that now for some reason. I dunno why :(");
+        puts("I need to show my cool TV fixing skills for the upcoming science fair.");
+        puts("I wonder what I can do to put it back to how it originally was... Any ideas? \nReply >> ");
+        gets(local_22);
 
-    if (strcmp(local_22, local_10) == 0) {
-        puts("Hmm. It doesn't work. Nice try though! :)");
-    } else {
-        local_18 = fopen("flag.txt", "r");
-        puts("The TV is back to buffering. Thanks!");
-        puts("Wait. It is showing some sorta secret code...");
+        if (strcmp(local_22, local_10) == 0) {
+            puts("Hmm. It doesn't work. Nice try though! :)");
+        } else {
+            local_18 = fopen("flag.txt", "r");
+            puts("The TV is back to buffering. Thanks!");
+            puts("Wait. It is showing some sorta secret code...");
 
-        if (local_18 == NULL) {
-            printf("Error in opening the flag file. Flag file might be missing :(\n");
+            if (local_18 == NULL) {
+                printf("Error in opening the flag file. Flag file might be missing :(\n");
+            }
+
+            gets(local_68 + 0x3b); // potential buffer overflow vulnerability
+            puts(local_68);
         }
 
-        gets(local_68 + 0x3b); // potential buffer overflow vulnerability
-        puts(local_68);
-    }
-
-    exit(0);
-}```
+        exit(0);
+    }```
 
 2. We can see this suspicious line ```gets(local_68 + 0x3b);```
 local_68 is a buffer with 70 bytes, and 0x3b is 59 in decimal. So ```gets(local_68 + 0x3b)``` starts writing at byte 59, leaving only 11 bytes until the end of the buffer.
