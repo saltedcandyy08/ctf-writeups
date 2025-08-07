@@ -42,18 +42,9 @@ local_68 is a buffer with 70 bytes, and 0x3b is 59 in decimal. So ```gets(local_
 
 However, gets() reads an entire line of user input without any size limit, meaning if the user enters more than 11 bytes, it will overwrite memory beyond local_68. So we can tell that this challenge is about **buffer overflow**!
 
-```local_68:  [ 0 ............ 58 ][59 60 61 .... 69][overflow → ???]```
-                      ^                ^
-                   start          end of buffer
-
 We also see that the condition for printing the flag is dependent on local_10 and local_22. local_10 already has a fixed value, but local_22 is just a buffer with 10 bytes. Hence we just need to make the strcmp() fail by corrupting local_22 to get the flag.
 
-3. This means that we just need a payload that is at least bytes long (11 to fill up local_68, and the rest to corrupt local_22). For me, I used:
-Payload: AAAAAAAAAABBBBBBBB
-         ^         ^
-        10A      8B (local_22)
-
-It worked:
+3. Since local_22 is just after local_68 in the main() function above, this means that we just need a payload that is more than 11 bytes long (11 to fill up local_68, and the rest to corrupt local_22). 
 ```└─$ nc 43.205.113.100 8370
     The TV usually keeps buffering. It isn't doing that now for some reason. I dunno why.
     I need to show my cool TV fixing skills for the upcoming science fair!

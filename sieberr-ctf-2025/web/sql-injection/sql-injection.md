@@ -1,0 +1,3 @@
+1. The login page asked me to enter a username and password. One of the most common SQL injection attacks taught to beginners is to enter `' OR 1=1;—` in the username, and anything in the password, as the password will usually be commented out in a standard SQL query like `SELECT * FROM users WHERE username = {username} AND password = {password}`.
+
+2. Using this payload, I obtained the flag from the next page: `sctf{c0ngr4tulat10ns_0n_y0ur_f1rst_sql_injection}`
