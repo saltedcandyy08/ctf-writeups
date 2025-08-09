@@ -1,5 +1,6 @@
 1. Analyse the file with Ghidra. main() shows this:
-```int main(void) {
+```
+        int main(void) {
         long in_FS_OFFSET;
         char local_28[24];
         long local_10;
@@ -18,10 +19,12 @@
         }
 
         return 0;
-}```
+        }
+```
 
 gameplay() shows this:
-```void gameplay(char *param_1) {
+```
+        void gameplay(char *param_1) {
         int iVar1;
         FILE *_stream;
         long in_FS_OFFSET;
@@ -68,9 +71,11 @@ gameplay() shows this:
     }
 
     return;
-}```
+        }
+```
 
 2. Looking at the decompiled code, I noticed this suspicious line:
+
    ```
    strcpy(local_58, param_1);  
    ```
@@ -80,17 +85,17 @@ gameplay() shows this:
 3. Then, we look at the stack layout to determine where we should overflow into:
 
 ```
-char local_68[16];  // Initially contains "DEAD"
-char local_58[16];  // Your input buffer
-char local_48[64];  // Flag storage (unused in the exploit)
+        char local_68[16];  // Initially contains "DEAD"
+        char local_58[16];  // Your input buffer
+        char local_48[64];  // Flag storage (unused in the exploit)
 ```
 
 4. Since the simple approach failed and I saw the unsafe `strcpy()`, I thought about overflowing `local_58` to corrupt adjacent memory. Looking at the stack layout:
 
    ```
-   char local_68[16];  // "DEAD" gets stored here
-   char local_58[16];  // Our input buffer
-   char local_48[64];  // Flag storage
+        char local_68[16];  // "DEAD" gets stored here
+        char local_58[16];  // Our input buffer
+        char local_48[64];  // Flag storage
    ```
 
 5. Since local_58 is right before local_68, I could fill up the entire 16-byte local_58 with random characters, and then overflow "ALIVE\x00" into local_68. If `local_68` (which normally contains "DEAD") gets overwritten with "ALIVE", it might affect the string comparison and trigger the flag condition.
