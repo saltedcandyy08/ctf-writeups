@@ -74,33 +74,29 @@ gameplay() shows this:
         }
 ```
 
-2. Looking at the decompiled code, I noticed this suspicious line:
+2. First, we need to look at what checks (conditions) we need to fulfill to get the flag. 
 
-   ```
-   strcpy(local_58, param_1);  
-   ```
+`param_1` is where our input payload goes.
 
-   `strcpy()` copies user input without any size validation into a 16-byte buffer (`local_58`). This is a classic **buffer overflow** vulnerability.
+First check: `iVar1 = strcmp(local_58, "ALIVE")` 
 
-3. Then, we look at the stack layout to determine where we should overflow into:
+If `iVar1 = 0`, then I can go on to the next step. This means that my payload must be "ALIVE".
 
+Second check: 
 ```
-        char local_68[16];  // Initially contains "DEAD"
-        char local_58[16];  // Your input buffer
-        char local_48[64];  // Flag storage (unused in the exploit)
+iVar1 = strcmp(local_58, "DEAD");
+if (iVar1 != 0) {
+        puts("ERROR. ERROR. AMONG US NOT RESPONDING.");
+        exit(0);
+}
 ```
+This line means that if my payload is not "DEAD", the program will print the "Game Over" set of messages. Otherwise, it will exit the program. 
 
-4. Since the simple approach failed and I saw the unsafe `strcpy()`, I thought about overflowing `local_58` to corrupt adjacent memory. Looking at the stack layout:
+3. It is impossible to fulfill both checks as if my payload is "ALIVE", the program will print the flag *and* exit at the same time. If my payload is "DEAD" or anything else, I will get the "Game Over" set of messages. However, I re-read the decompiled code and noticed that we have this other line that uses `strcmp()`: `__builtin_strncpy(local_68, "DEAD", 5)`. Also, both checks use `strcmp()` which relies on null bytes to identify the end of a string, meaning that it is possible to read into adjacent buffers.
 
-   ```
-        char local_68[16];  // "DEAD" gets stored here
-        char local_58[16];  // Our input buffer
-        char local_48[64];  // Flag storage
-   ```
+4. This means that we need a payload such that local_58 contains "ALIVE" and local_68 is corrupted such that local_68 does not contain "DEAD" to avoid triggering the `exit(0)`. 
 
-5. Since local_58 is right before local_68, I could fill up the entire 16-byte local_58 with random characters, and then overflow "ALIVE\x00" into local_68. If `local_68` (which normally contains "DEAD") gets overwritten with "ALIVE", it might affect the string comparison and trigger the flag condition.
-
-6.Use 16 bytes of "A" to fill up local_58, and include "ALIVE":
+5. Use 16 bytes of "A" to fill up local_58, and include "ALIVE". This causes the first check's `strcmp()` to read past local_58 into local_68 where "ALIVE" has overflowed, and local_68 is corrupted, so it will not trigger `exit(0)`:
 
 ```
 └─$ python -c 'print("A"*16 + "ALIVE\x00")' | nc 43.205.113.100 8292
